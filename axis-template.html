@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axis — Systems for a world in motion</title>
+<meta name="description" content="Axis builds systems at the intersection of data, energy and intelligence.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --black-0:#040405;
+    --black-1:#08090b;
+    --black-2:#0d0e11;
+    --grey-800:#1c1d21;
+    --grey-700:#33343a;
+    --grey-500:#71727a;
+    --grey-300:#a9aab1;
+    --grey-100:#dcdce0;
+    --white:#f6f6f7;
+
+    --blue:#4d84ff;
+    --violet:#9b7bff;
+    --red:#ff5d63;
+    --orange:#ff9a52;
+
+    --line:rgba(255,255,255,0.09);
+    --line-strong:rgba(255,255,255,0.17);
+
+    --display:'Sora', sans-serif;
+    --body:'Inter', sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+    --ease:cubic-bezier(.16,.84,.44,1);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{background:var(--black-0);color:var(--white);}
+  body{font-family:var(--body); line-height:1.5; overflow-x:hidden; -webkit-font-smoothing:antialiased;}
+  body.no-scroll{overflow:hidden; height:100vh;}
+  ::selection{background:var(--red); color:var(--white);}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+  h1,h2,h3{font-family:var(--display); font-weight:600; letter-spacing:-.02em;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px;}
+  .section-pad{padding:150px 0;}
+
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .9s var(--ease), transform .9s var(--ease);}
+  .reveal.visible{opacity:1; transform:translateY(0);}
+  .reveal-delay-1{transition-delay:.08s;}
+  .reveal-delay-2{transition-delay:.16s;}
+  .reveal-delay-3{transition-delay:.24s;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;
+    color:var(--grey-300); border:1px solid var(--line-strong); border-radius:100px;
+    padding:8px 16px 8px 12px; background:rgba(255,255,255,.03);
+  }
+  .badge .dot{width:6px; height:6px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--red));}
+
+  .grad-text{
+    background:linear-gradient(90deg,var(--blue),var(--violet) 50%,var(--red));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* ---------------- LOADER ---------------- */
+  #loader{
+    position:fixed; inset:0; z-index:999; background:var(--black-0);
+    display:flex; flex-direction:column; justify-content:space-between; padding:28px 32px;
+    transition:opacity .8s var(--ease), visibility .8s var(--ease); overflow:hidden;
+  }
+  #loader.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  #loader .orb-glow{
+    position:absolute; left:50%; top:50%; width:60vmax; height:60vmax; transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(77,132,255,.14), rgba(255,93,99,.10) 46%, transparent 70%);
+    filter:blur(20px);
+    animation:pulseGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes pulseGlow{0%,100%{opacity:.7; transform:translate(-50%,-50%) scale(1);} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.06);}}
+  .loader-top, .loader-bottom{position:relative; z-index:2; display:flex; justify-content:space-between; align-items:center;}
+  .loader-brand{font-family:var(--display); font-size:.95rem; letter-spacing:.02em; display:flex; align-items:center; gap:9px;}
+  .loader-brand .mark{width:16px; height:16px; border-radius:50%; background:conic-gradient(from 180deg, var(--blue), var(--violet), var(--red), var(--orange), var(--blue));}
+  .loader-tag, .loader-status{font-family:var(--mono); font-size:.72rem; color:var(--grey-500); letter-spacing:.08em;}
+  .loader-bar-wrap{display:flex; align-items:center; gap:16px; position:relative; z-index:2;}
+  .loader-bar{flex:1; height:1px; background:var(--line-strong); position:relative; overflow:hidden;}
+  .loader-bar span{position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(90deg,var(--blue),var(--red));}
+  .loader-pct{font-family:var(--mono); font-size:.72rem; color:var(--grey-300); min-width:44px; text-align:right;}
+
+  /* ---------------- NAV ---------------- */
+  header{position:fixed; top:0; left:0; right:0; z-index:200; display:flex; justify-content:center; padding:18px 24px;}
+  .nav-inner{
+    width:100%; max-width:1180px; display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px 10px 18px; border:1px solid var(--line); border-radius:100px;
+    background:rgba(8,9,11,.55); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .brand{display:flex; align-items:center; gap:9px; font-family:var(--display); font-size:1rem; font-weight:700;}
+  .brand .mark{width:17px; height:17px; border-radius:50%; background:conic-gradient(from 180deg, var(--blue), var(--violet), var(--red), var(--orange), var(--blue)); flex-shrink:0;}
+  .nav-links{display:flex; gap:34px; align-items:center; font-size:.86rem; color:var(--grey-300);}
+  .nav-links a{position:relative; padding:4px 0; transition:color .3s var(--ease);}
+  .nav-links a:hover{color:var(--white);}
+  .nav-links a::after{content:''; position:absolute; left:0; right:0; bottom:-2px; height:1px; background:var(--white); transform:scaleX(0); transform-origin:right; transition:transform .35s var(--ease);}
+  .nav-links a:hover::after{transform:scaleX(1); transform-origin:left;}
+  .nav-cta{display:flex; align-items:center; gap:6px; font-size:.82rem; padding:9px 16px; border:1px solid var(--line-strong); border-radius:100px; transition:background .3s var(--ease), border-color .3s var(--ease);}
+  .nav-cta:hover{background:rgba(255,255,255,.06); border-color:transparent;}
+  .nav-mobile-hide{display:flex;}
+  @media (max-width:760px){ .nav-mobile-hide{display:none;} }
+
+  /* ---------------- BUTTONS ---------------- */
+  .btn{display:inline-flex; align-items:center; gap:8px; font-size:.88rem; padding:13px 22px; border-radius:100px; border:1px solid transparent; cursor:pointer; transition:transform .35s var(--ease), background .3s var(--ease), border-color .3s var(--ease), opacity .3s var(--ease);}
+  .btn-primary{background:linear-gradient(90deg,var(--blue),var(--red)); color:#fff; font-weight:600;}
+  .btn-primary:hover{transform:translateY(-2px); opacity:.92;}
+  .btn-ghost{border-color:var(--line-strong); color:var(--white); background:rgba(255,255,255,.02);}
+  .btn-ghost:hover{background:rgba(255,255,255,.07); transform:translateY(-2px);}
+
+  section{position:relative;}
+
+  /* ---------------- HERO ---------------- */
+  #hero{height:190vh;}
+  .hero-pin{position:sticky; top:0; height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; z-index:0;}
+  .hero-vignette{position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at 50% 50%, transparent 34%, var(--black-0) 84%);}
+  .hero-content{position:relative; z-index:2; text-align:center; padding:0 24px; max-width:820px;}
+  .hero-content .badge{margin-bottom:26px;}
+  .hero-title{font-size:clamp(2.3rem,5.6vw,4.3rem); line-height:1.08; margin-bottom:22px;}
+  .hero-sub{color:var(--grey-300); font-size:1rem; max-width:52ch; margin:0 auto 34px;}
+  .hero-actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+  .hero-actions .btn-ghost{padding-left:26px; padding-right:26px;}
+
+  /* ---------------- DNA / STATS ---------------- */
+  #proof{padding:170px 0; overflow:hidden;}
+  .proof-stage{position:relative; height:560px; display:flex; align-items:center; justify-content:center;}
+  #dna-canvas{position:absolute; inset:0; width:100%; height:100%;}
+  .stat-card{
+    position:absolute; width:230px; padding:20px 22px; border-radius:16px;
+    background:rgba(14,15,18,.72); border:1px solid var(--line-strong);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+  .stat-card .stat-label{font-family:var(--mono); font-size:.66rem; letter-spacing:.09em; color:var(--grey-500); text-transform:uppercase; margin-bottom:10px;}
+  .stat-card .stat-num{font-family:var(--display); font-size:2.1rem; font-weight:700; margin-bottom:8px;}
+  .stat-card .stat-num.warm{background:linear-gradient(90deg,var(--orange),var(--red)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .stat-card .stat-num.cool{background:linear-gradient(90deg,var(--blue),var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .stat-card p{font-size:.82rem; color:var(--grey-300); line-height:1.45;}
+  .stat-card-a{left:6%; top:18%;}
+  .stat-card-b{right:5%; top:52%;}
+  @media (max-width:900px){
+    .stat-card{position:static; width:100%; margin:14px auto 0;}
+    .proof-stage{flex-direction:column; height:auto; padding-bottom:20px;}
+    #dna-canvas{position:relative; height:420px;}
+  }
+  .proof-head{text-align:center; max-width:640px; margin:0 auto 50px;}
+  .proof-head h2{font-size:clamp(1.9rem,4.2vw,2.8rem); margin-top:18px;}
+
+  /* ---------------- PINNED TERRAIN / CRATER / VOID ---------------- */
+  #gravity{height:360vh;}
+  .pin-inner{position:sticky; top:0; height:100vh; display:flex; flex-direction:column; justify-content:center; overflow:hidden;}
+  #terrain-canvas{position:absolute; inset:0; z-index:0; width:100%; height:100%;}
+  .gravity-grid{position:relative; z-index:2; display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:end; padding-bottom:8vh;}
+  .gravity-copy h2{font-size:clamp(2rem,4.6vw,3.4rem); line-height:1.08; margin-top:18px;}
+  .gravity-copy p{color:var(--grey-300); font-size:.98rem; max-width:44ch; margin-top:18px;}
+  .gravity-actions{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;}
+  @media (max-width:860px){
+    .gravity-grid{grid-template-columns:1fr; text-align:left;}
+  }
+
+  /* ---------------- ECOSYSTEM / GALAXY ---------------- */
+  #ecosystem{padding:170px 0 160px; text-align:center; overflow:hidden;}
+  .eco-visual{position:relative; height:480px; margin-top:20px;}
+  #galaxy-canvas{position:absolute; inset:0; width:100%; height:100%;}
+  #ecosystem h2{font-size:clamp(2.1rem,5.2vw,3.6rem); margin-top:18px; line-height:1.08;}
+  #ecosystem p{color:var(--grey-300); max-width:52ch; margin:20px auto 0; font-size:.98rem;}
+  #ecosystem .btn-row{display:flex; gap:14px; justify-content:center; margin-top:32px; flex-wrap:wrap;}
+
+  /* ---------------- FAQ ---------------- */
+  #faq{background:var(--black-1); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .faq-head{display:flex; justify-content:space-between; align-items:flex-end; gap:30px; margin-bottom:50px; flex-wrap:wrap;}
+  .faq-head h2{font-size:clamp(1.9rem,4.2vw,2.8rem);}
+  .faq-head p{max-width:32ch; color:var(--grey-500); font-size:.9rem;}
+  .faq-item{border-top:1px solid var(--line);}
+  .faq-item:last-child{border-bottom:1px solid var(--line);}
+  .faq-q{width:100%; text-align:left; background:none; border:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:24px 2px; font-family:var(--display); font-weight:600; font-size:1rem; color:var(--white);}
+  .faq-q .plus{width:24px; height:24px; position:relative; flex-shrink:0; margin-left:20px;}
+  .faq-q .plus::before, .faq-q .plus::after{content:''; position:absolute; background:var(--grey-300); top:50%; left:50%; transform:translate(-50%,-50%);}
+  .faq-q .plus::before{width:13px; height:1.4px;}
+  .faq-q .plus::after{width:1.4px; height:13px; transition:transform .35s var(--ease);}
+  .faq-item.open .plus::after{transform:translate(-50%,-50%) rotate(90deg) scale(0);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height .45s var(--ease), padding .45s var(--ease);}
+  .faq-item.open .faq-a{max-height:200px; padding-bottom:24px;}
+  .faq-a p{max-width:60ch; color:var(--grey-500); font-size:.9rem; padding:0 2px;}
+
+  /* ---------------- CONTACT ---------------- */
+  #contact{padding:150px 0 90px; text-align:center;}
+  #contact h2{font-size:clamp(2.4rem,6.4vw,4.4rem); margin-bottom:36px;}
+  .contact-form{max-width:620px; margin:0 auto; display:flex; align-items:center; border:1px solid var(--line-strong); border-radius:100px; padding:6px 6px 6px 26px; flex-wrap:wrap; background:rgba(255,255,255,.02);}
+  .contact-form input{background:none; border:none; outline:none; color:var(--white); font-family:var(--body); font-size:.9rem; padding:12px 14px; flex:1; min-width:120px;}
+  .contact-form input::placeholder{color:var(--grey-500);}
+  .contact-form .divider{width:1px; height:22px; background:var(--line-strong);}
+  .contact-note{margin-top:20px; font-family:var(--mono); font-size:.72rem; color:var(--grey-500); letter-spacing:.05em;}
+  @media (max-width:600px){
+    .contact-form{border-radius:22px; padding:16px;}
+    .contact-form .divider{display:none;}
+    .contact-form button{width:100%; justify-content:center; margin-top:8px;}
+  }
+
+  /* ---------------- FOOTER ---------------- */
+  footer{border-top:1px solid var(--line); padding:80px 0 30px; position:relative; overflow:hidden;}
+  .footer-glow{position:absolute; bottom:-40%; left:50%; transform:translateX(-50%); width:80%; height:280px; background:radial-gradient(ellipse, rgba(77,132,255,.10), rgba(255,93,99,.06) 60%, transparent 75%); pointer-events:none;}
+  .footer-top{display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr; gap:40px; padding-bottom:60px; position:relative; z-index:2;}
+  .footer-brand .brand{margin-bottom:16px;}
+  .footer-brand p{color:var(--grey-500); font-size:.88rem; max-width:32ch;}
+  .footer-col h5{font-family:var(--mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--grey-500); margin-bottom:18px;}
+  .footer-col a{display:block; font-size:.88rem; color:var(--grey-300); margin-bottom:12px; transition:color .3s var(--ease);}
+  .footer-col a:hover{color:var(--white);}
+  .footer-bottom{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:26px; border-top:1px solid var(--line); font-family:var(--mono); font-size:.72rem; color:var(--grey-500); position:relative; z-index:2;}
+  @media (max-width:760px){
+    .footer-top{grid-template-columns:1fr 1fr; row-gap:36px;}
+    .footer-brand{grid-column:1/-1;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    #loader .orb-glow{animation:none;}
+  }
+</style>
+</head>
+<body class="no-scroll">
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="orb-glow"></div>
+  <div class="loader-top">
+    <div class="loader-brand"><span class="mark"></span>AXIS</div>
+    <div class="loader-tag">A—01 / TEMPLATE.PREVIEW</div>
+  </div>
+  <div class="loader-bottom" style="flex-direction:column; gap:14px; align-items:stretch;">
+    <div class="loader-status" id="loader-status">CALIBRATING FIELD</div>
+    <div class="loader-bar-wrap">
+      <div class="loader-bar"><span id="loader-bar-fill"></span></div>
+      <div class="loader-pct" id="loader-pct">0%</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<header>
+  <div class="nav-inner">
+    <a href="#hero" class="brand"><span class="mark"></span>Axis</a>
+    <nav class="nav-links nav-mobile-hide">
+      <a href="#hero">Home</a>
+      <a href="#proof">Platform</a>
+      <a href="#gravity">Solutions</a>
+      <a href="#ecosystem">Ecosystem</a>
+    </nav>
+    <a href="#contact" class="nav-cta">Get started <span>→</span></a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-pin">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-vignette"></div>
+    <div class="hero-content" id="hero-content">
+      <span class="badge"><span class="dot"></span>Welcome to what's next</span>
+      <h1 class="hero-title">Systems built for a world in motion.</h1>
+      <p class="hero-sub">We design at the edge of data, energy and intelligence — where new kinds of products become possible.</p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn btn-primary">Get started</a>
+        <a href="#proof" class="btn btn-ghost">See how it works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF / DNA -->
+<section id="proof">
+  <div class="wrap">
+    <div class="proof-head reveal">
+      <span class="badge"><span class="dot"></span>Built on real deployments</span>
+      <h2>Every strand of data, working toward one outcome.</h2>
+    </div>
+    <div class="proof-stage">
+      <canvas id="dna-canvas"></canvas>
+      <div class="stat-card stat-card-a reveal">
+        <div class="stat-label">Average efficiency gain</div>
+        <div class="stat-num warm">71%</div>
+        <p>Measured across live deployments, not lab conditions.</p>
+      </div>
+      <div class="stat-card stat-card-b reveal reveal-delay-1">
+        <div class="stat-label">Systems in production</div>
+        <div class="stat-num cool">3,100+</div>
+        <p>Running today, across industries and time zones.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PINNED GRAVITY / TERRAIN -->
+<section id="gravity">
+  <div class="pin-inner">
+    <canvas id="terrain-canvas"></canvas>
+    <div class="wrap gravity-grid">
+      <div class="gravity-copy">
+        <span class="badge"><span class="dot"></span>The center of gravity</span>
+        <h2>Every signal bends<br>toward one thing —<br>your growth.</h2>
+      </div>
+      <div class="gravity-copy">
+        <p>Thousands of data points, one point of focus. We turn scattered information into a single source of energy for your business.</p>
+        <div class="gravity-actions">
+          <a href="#contact" class="btn btn-primary">Start free trial</a>
+          <a href="#contact" class="btn btn-ghost">Book a demo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM / GALAXY -->
+<section id="ecosystem">
+  <div class="wrap">
+    <span class="badge reveal"><span class="dot"></span>Our product ecosystem</span>
+    <h2 class="reveal reveal-delay-1">A universe of tools —<br>already in orbit.</h2>
+    <div class="eco-visual reveal reveal-delay-2"><canvas id="galaxy-canvas"></canvas></div>
+    <p class="reveal">This isn't one product. It's a living system with your business at the center, surrounded by services, partners and data in constant motion.</p>
+    <div class="btn-row reveal reveal-delay-1">
+      <a href="#contact" class="btn btn-primary">Explore the ecosystem</a>
+      <a href="#faq" class="btn btn-ghost">View integrations</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap section-pad">
+    <div class="faq-head reveal">
+      <h2>Questions,<br>answered plainly.</h2>
+      <p>Short answers to what people usually ask before rolling this into a real build.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q">What exactly does Axis do? <span class="plus"></span></button>
+        <div class="faq-a"><p>Axis is a template for a data & energy platform — a starting point with the motion, layout and structure already in place.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is the particle field expensive to run? <span class="plus"></span></button>
+        <div class="faq-a"><p>Particle counts scale down automatically for smaller screens, and every canvas pauses rendering the moment it leaves the viewport.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Does it work without JavaScript? <span class="plus"></span></button>
+        <div class="faq-a"><p>The layout, copy and links remain readable — only the particle motion depends on script, and it respects reduced-motion settings.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I reskin this for my own brand? <span class="plus"></span></button>
+        <div class="faq-a"><p>Yes — every colour, shape and line of copy in this file is meant to be replaced with your own.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <h2 class="reveal">Let's build what's next<span class="grad-text">.</span></h2>
+    <form class="contact-form reveal reveal-delay-1" onsubmit="return false;">
+      <input type="text" placeholder="Name" required>
+      <div class="divider"></div>
+      <input type="email" placeholder="Email" required>
+      <button type="submit" class="btn btn-primary">Get started →</button>
+    </form>
+    <div class="contact-note reveal reveal-delay-2">NO SPAM. JUST A REPLY, USUALLY WITHIN A DAY.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-glow"></div>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#hero" class="brand"><span class="mark"></span>Axis</a>
+        <p>Systems at the intersection of data, energy and intelligence.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <a href="#hero">Overview</a>
+        <a href="#proof">Proof</a>
+        <a href="#gravity">Solutions</a>
+        <a href="#ecosystem">Ecosystem</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a href="#faq">About</a>
+        <a href="#faq">Careers</a>
+        <a href="#faq">Journal</a>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <a href="#faq">Docs</a>
+        <a href="#faq">Support</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AXIS SYSTEMS — TEMPLATE FILE</span>
+      <span>BUILT WITH LIGHT AND A LITTLE JAVASCRIPT</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isSmall = window.innerWidth < 760;
+
+  /* ---------- LOADER ---------- */
+  const statuses = ['CALIBRATING FIELD','READING VIEWPORT','WARMING RENDER LOOP','READY'];
+  const barFill = document.getElementById('loader-bar-fill');
+  const pctEl = document.getElementById('loader-pct');
+  const statusEl = document.getElementById('loader-status');
+  let pct = 0;
+  const loadTimer = setInterval(()=>{
+    pct += Math.random()*14+6;
+    if(pct>=100){
+      pct=100; clearInterval(loadTimer); statusEl.textContent=statuses[3];
+      setTimeout(finishLoad,380);
+    } else {
+      statusEl.textContent = statuses[Math.min(2,Math.floor(pct/34))];
+    }
+    barFill.style.width = pct+'%';
+    pctEl.textContent = Math.floor(pct)+'%';
+  },160);
+  function finishLoad(){
+    document.getElementById('loader').classList.add('hidden');
+    document.body.classList.remove('no-scroll');
+  }
+  setTimeout(finishLoad,4200);
+
+  /* ---------- REVEAL ---------- */
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, {threshold:0.2});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  /* ---------- FAQ ---------- */
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    item.querySelector('.faq-q').addEventListener('click', ()=>{
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+      if(!isOpen) item.classList.add('open');
+    });
+  });
+
+  /* ================= PARTICLE ENGINE ================= */
+  function gaussian(){
+    let u=0,v=0;
+    while(u===0)u=Math.random();
+    while(v===0)v=Math.random();
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function colorLerp(c1,c2,t){
+    return { r:lerp(c1.r,c2.r,t), g:lerp(c1.g,c2.g,t), b:lerp(c1.b,c2.b,t) };
+  }
+  const COL = {
+    blue:{r:77,g:132,b:255}, violet:{r:155,g:123,b:255},
+    red:{r:255,g:93,b:99}, orange:{r:255,g:154,b:82}, white:{r:255,g:255,b:255}
+  };
+
+  function makeSphere(count){
+    const pts=[]; const R=170;
+    for(let i=0;i<count;i++){
+      const theta=Math.random()*Math.PI*2;
+      const phi=Math.acos(2*Math.random()-1);
+      const jitter = 1 + (Math.random()-0.5)*0.05;
+      const r = R*jitter;
+      const x=r*Math.sin(phi)*Math.cos(theta);
+      const y=r*Math.sin(phi)*Math.sin(theta);
+      const z=r*Math.cos(phi);
+      const t = clamp((y/R+1)/2,0,1);
+      const c = colorLerp(COL.blue, COL.orange, t);
+      pts.push({x,y,z,b:0.45+Math.random()*0.55,r:c.r,g:c.g,bl:c.b});
+    }
+    return pts;
+  }
+
+  function makeDNA(count){
+    const pts=[];
+    const turns=3.4, height=420, radius=46;
+    const strandCount = Math.floor(count*0.72);
+    for(let i=0;i<strandCount;i++){
+      const t = i/strandCount;
+      const ang = t*Math.PI*2*turns;
+      const y = t*height - height/2;
+      const which = i%2===0 ? 0 : Math.PI;
+      const x = radius*Math.cos(ang+which);
+      const z = radius*Math.sin(ang+which);
+      const tone = 0.5+0.5*Math.sin(ang*0.5);
+      const c = colorLerp(COL.blue, COL.violet, tone);
+      pts.push({x,y,z,b:0.5+Math.random()*0.5,r:c.r,g:c.g,bl:c.b});
+    }
+    const rungCount = count - strandCount;
+    for(let i=0;i<rungCount;i++){
+      const t = Math.random();
+      const ang = t*Math.PI*2*turns;
+      const y = t*height - height/2;
+      const f = Math.random();
+      const x = lerp(radius*Math.cos(ang), radius*Math.cos(ang+Math.PI), f);
+      const z = lerp(radius*Math.sin(ang), radius*Math.sin(ang+Math.PI), f);
+      const c = colorLerp(COL.blue, COL.white, 0.3);
+      pts.push({x,y,z,b:0.25+Math.random()*0.35,r:c.r,g:c.g,bl:c.b});
+    }
+    return pts;
+  }
+
+  function makeTerrain(cols, rows, fn){
+    const pts=[];
+    const W=620, D=520;
+    for(let ri=0; ri<rows; ri++){
+      for(let ci=0; ci<cols; ci++){
+        const u = ci/(cols-1);
+        const v = ri/(rows-1);
+        const x = (u-0.5)*W;
+        const z = -v*D;
+        const y = fn(x,z,u,v);
+        const t = clamp(u,0,1);
+        const c = colorLerp(COL.blue, COL.red, t);
+        const brightness = 0.85 - v*0.65;
+        pts.push({x,y,z,b:Math.max(0.08,brightness+Math.random()*0.1),r:c.r,g:c.g,bl:c.b});
+      }
+    }
+    return pts;
+  }
+
+  function terrainWave(x,z,u,v){
+    const depthFalloff = 1-v*0.85;
+    return Math.sin(x*0.018+z*0.01)*22*depthFalloff + Math.sin(x*0.05-z*0.02)*8*depthFalloff + 40;
+  }
+  function craterWave(x,z,u,v){
+    const depthFalloff = 1-v*0.85;
+    const dist = Math.sqrt(x*x + (z+140)*(z+140));
+    const bowl = clamp(1-dist/230,0,1);
+    const rim = Math.exp(-Math.pow((dist-230)/60,2))*26;
+    return 40 + Math.sin(x*0.018+z*0.01)*10*depthFalloff - bowl*bowl*120 + rim;
+  }
+
+  function makeVoid(count){
+    const pts=[];
+    const minR=90, maxR=430;
+    for(let i=0;i<count;i++){
+      const angle = Math.random()*Math.PI*2;
+      const radial = minR + Math.pow(Math.random(),1.6)*(maxR-minR);
+      const x = radial*Math.cos(angle);
+      const y = radial*Math.sin(angle)*0.62;
+      const z = (Math.random()-0.5)*60 - 40;
+      const t = clamp((x+maxR)/(2*maxR),0,1);
+      const c = colorLerp(COL.blue, COL.red, t);
+      const proximity = clamp(1-((radial-minR)/(maxR-minR)),0,1);
+      pts.push({x,y,z,b:0.15+proximity*0.75,r:c.r,g:c.g,bl:c.b});
+    }
+    return pts;
+  }
+
+  function makeGalaxyRings(count){
+    const pts=[];
+    const coreCount = Math.floor(count*0.16);
+    for(let i=0;i<count;i++){
+      if(i<coreCount){
+        const rad = Math.abs(gaussian())*30;
+        const ang = Math.random()*Math.PI*2;
+        const x = rad*Math.cos(ang);
+        const y = (Math.random()-0.5)*10;
+        const z = rad*Math.sin(ang)*0.5;
+        const c = colorLerp(COL.orange, COL.white, Math.random()*0.6);
+        pts.push({x,y,z,b:0.85+Math.random()*0.15,r:c.r,g:c.g,bl:c.b});
+      } else {
+        const ring = Math.random()<0.5 ? 175 : 245;
+        const angle = Math.random()*Math.PI*2;
+        const rad = ring + (Math.random()-0.5)*24;
+        const x = rad*Math.cos(angle);
+        const z = rad*Math.sin(angle);
+        const y = (Math.random()-0.5)*8;
+        const t = clamp((rad-140)/140,0,1);
+        const c = colorLerp(COL.orange, COL.blue, t);
+        pts.push({x,y,z,b:0.28+Math.random()*0.42,r:c.r,g:c.g,bl:c.b});
+      }
+    }
+    return pts;
+  }
+
+  class ParticleField{
+    constructor(canvas, opts){
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.opts = Object.assign({ speed:0.0022, baseRotX:0.18, baseRotY:Math.random()*Math.PI*2, scale:1, interactive:true, blend:null, camBase:480, zoomFn:null }, opts);
+      this.rotY = this.opts.baseRotY;
+      this.rotX = this.opts.baseRotX;
+      this.mouseX=0; this.mouseY=0; this.running=false;
+      this.dpr = Math.min(window.devicePixelRatio||1,2);
+      this._resize();
+      window.addEventListener('resize', ()=>this._resize());
+      if(this.opts.interactive){
+        (canvas.closest('section')||canvas.parentElement).addEventListener('mousemove',(e)=>this._onMouse(e));
+      }
+    }
+    _resize(){
+      const rect = this.canvas.parentElement.getBoundingClientRect();
+      this.w = rect.width; this.h = rect.height;
+      this.canvas.width = Math.max(1,this.w*this.dpr);
+      this.canvas.height = Math.max(1,this.h*this.dpr);
+    }
+    _onMouse(e){
+      const rect = this.canvas.getBoundingClientRect();
+      this.mouseX = (e.clientX-rect.left)/rect.width - 0.5;
+      this.mouseY = (e.clientY-rect.top)/rect.height - 0.5;
+    }
+    start(){ if(!this.running){ this.running=true; this._loop(); } }
+    stop(){ this.running=false; }
+    _loop(){ if(!this.running) return; this._draw(); this._raf=requestAnimationFrame(()=>this._loop()); }
+    _draw(){
+      const {ctx,w,h,dpr}=this;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,w,h);
+      this.rotY += this.opts.speed;
+      const targetRotX = this.opts.baseRotX + this.mouseY*0.3;
+      this.rotX += (targetRotX-this.rotX)*0.04;
+      const cy=Math.cos(this.rotY), sy=Math.sin(this.rotY);
+      const cx=Math.cos(this.rotX), sx=Math.sin(this.rotX);
+      const zoom = this.opts.zoomFn ? this.opts.zoomFn() : 0;
+      const scale = this.opts.scale * (Math.min(w,h)/460) * (1+zoom*1.6);
+      const camBase = this.opts.camBase - zoom*(this.opts.camBase*0.5);
+      const blendT = this.opts.blend ? this.opts.blend() : null;
+      const A=this.opts.pointsA, B=this.opts.pointsB, C=this.opts.pointsC;
+      const proj=[];
+      for(let i=0;i<A.length;i++){
+        let px,py,pz,pb,pr,pg,pbl;
+        if(C && blendT!==null){
+          const t = blendT;
+          if(t<=0.5){
+            const tt=t/0.5;
+            px=lerp(A[i].x,B[i].x,tt); py=lerp(A[i].y,B[i].y,tt); pz=lerp(A[i].z,B[i].z,tt);
+            pb=lerp(A[i].b,B[i].b,tt); pr=lerp(A[i].r,B[i].r,tt); pg=lerp(A[i].g,B[i].g,tt); pbl=lerp(A[i].bl,B[i].bl,tt);
+          } else {
+            const tt=(t-0.5)/0.5;
+            px=lerp(B[i].x,C[i].x,tt); py=lerp(B[i].y,C[i].y,tt); pz=lerp(B[i].z,C[i].z,tt);
+            pb=lerp(B[i].b,C[i].b,tt); pr=lerp(B[i].r,C[i].r,tt); pg=lerp(B[i].g,C[i].g,tt); pbl=lerp(B[i].bl,C[i].bl,tt);
+          }
+        } else if(B && blendT!==null){
+          const t=blendT;
+          px=lerp(A[i].x,B[i].x,t); py=lerp(A[i].y,B[i].y,t); pz=lerp(A[i].z,B[i].z,t);
+          pb=lerp(A[i].b,B[i].b,t); pr=lerp(A[i].r,B[i].r,t); pg=lerp(A[i].g,B[i].g,t); pbl=lerp(A[i].bl,B[i].bl,t);
+        } else {
+          px=A[i].x; py=A[i].y; pz=A[i].z; pb=A[i].b; pr=A[i].r; pg=A[i].g; pbl=A[i].bl;
+        }
+        let x = px*cy - pz*sy;
+        let z = px*sy + pz*cy;
+        let y2 = py*cx - z*sx;
+        let z2 = py*sx + z*cx;
+        const persp = camBase/(camBase+z2);
+        const sxp = w/2 + (x + this.mouseX*26) * persp * scale;
+        const syp = h/2 + y2 * persp * scale;
+        proj.push({x:sxp,y:syp,persp,b:pb,r:pr,g:pg,bl:pbl});
+      }
+      proj.sort((a,b2)=>a.persp-b2.persp);
+      for(const q of proj){
+        const alpha = Math.max(0.03, Math.min(1,(q.persp-0.3)*1.5)) * q.b;
+        const rad = Math.max(0.35, 1.6*q.persp);
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba('+(q.r|0)+','+(q.g|0)+','+(q.bl|0)+','+alpha.toFixed(3)+')';
+        ctx.arc(q.x,q.y,rad,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  const COUNT = isSmall ? 420 : 950;
+  const DNA_COUNT = isSmall ? 500 : 1100;
+  const TERRAIN_COLS = isSmall ? 26 : 42;
+  const TERRAIN_ROWS = isSmall ? 16 : 22;
+  const VOID_COUNT = isSmall ? 500 : 1100;
+  const GALAXY_COUNT = isSmall ? 420 : 900;
+
+  /* HERO — sphere with scroll-zoom */
+  const heroSection = document.getElementById('hero');
+  const heroContent = document.getElementById('hero-content');
+  const heroField = new ParticleField(document.getElementById('hero-canvas'), {
+    pointsA: makeSphere(COUNT),
+    speed:0.0016, baseRotX:0.1, scale:1, camBase:500,
+    zoomFn: ()=>{
+      const rect = heroSection.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      return clamp(-rect.top/total, 0, 1);
+    }
+  });
+
+  /* DNA */
+  const dnaField = new ParticleField(document.getElementById('dna-canvas'), {
+    pointsA: makeDNA(DNA_COUNT), speed:0.006, baseRotX:0.12, scale:0.95
+  });
+
+  /* TERRAIN -> CRATER -> VOID, scroll pinned 3-way blend */
+  const gravitySection = document.getElementById('gravity');
+  const terrainField = new ParticleField(document.getElementById('terrain-canvas'), {
+    pointsA: makeTerrain(TERRAIN_COLS, TERRAIN_ROWS, terrainWave),
+    pointsB: makeTerrain(TERRAIN_COLS, TERRAIN_ROWS, craterWave),
+    pointsC: makeVoid(TERRAIN_COLS*TERRAIN_ROWS),
+    speed:0.0009, baseRotX:0.5, scale:1.15, camBase:520,
+    blend: ()=>{
+      const rect = gravitySection.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      return clamp(-rect.top/total, 0, 1);
+    }
+  });
+
+  /* GALAXY ecosystem */
+  const galaxyField = new ParticleField(document.getElementById('galaxy-canvas'), {
+    pointsA: makeGalaxyRings(GALAXY_COUNT), speed:0.0018, baseRotX:0.78, scale:1
+  });
+
+  const fields = [
+    {el:heroSection, field:heroField},
+    {el:document.getElementById('proof'), field:dnaField},
+    {el:gravitySection, field:terrainField},
+    {el:document.getElementById('ecosystem'), field:galaxyField},
+  ];
+
+  if(reduceMotion){
+    fields.forEach(f=>{ f.field.start(); setTimeout(()=>f.field.stop(),60); });
+  } else {
+    const vio = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        const match = fields.find(f=>f.el===entry.target);
+        if(!match) return;
+        if(entry.isIntersecting) match.field.start(); else match.field.stop();
+      });
+    }, {threshold:0.05});
+    fields.forEach(f=>vio.observe(f.el));
+  }
+
+  /* hero text fade on zoom */
+  if(!reduceMotion){
+    window.addEventListener('scroll', ()=>{
+      const rect = heroSection.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      const zoom = clamp(-rect.top/total,0,1);
+      heroContent.style.opacity = clamp(1-zoom*1.6,0,1);
+      heroContent.style.transform = 'translateY('+(-zoom*50)+'px)';
+    }, {passive:true});
+  }
+
+})();
+</script>
+</body>
+</html>
